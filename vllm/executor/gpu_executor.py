@@ -1,4 +1,5 @@
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
+import os
 
 from vllm.executor.executor_base import ExecutorAsyncBase, ExecutorBase
 from vllm.logger import init_logger
@@ -82,7 +83,7 @@ class GPUExecutor(ExecutorBase):
 
     def _get_create_worker_kwargs(
             self,
-            local_rank: int = 0,
+            local_rank: int = os.environ["LOCAL_RANK"],
             rank: int = 0,
             distributed_init_method: Optional[str] = None) -> Dict:
         worker_kwargs = self._get_worker_kwargs(local_rank, rank,
