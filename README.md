@@ -1,3 +1,16 @@
+# Installation Steps after Mukur's Changes
+- Pip install vllm from pip
+```bash
+pip install vllm
+```
+- Upgrade vllm package with dev_mukur branch of this repo
+```bash
+pip install git+https://<Your GIT PAT>@github.com/mukurgupta/vllm.git@dev_mukur
+```
+- Notes: i) I have tested this with Python 3.10 (this was recommended on vllm documentation), ii) for controlling CUDA device for vllm inference, use 'LOCAL_RANK' env variable.
+
+---
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vllm-project/vllm/main/docs/source/assets/logos/vllm-logo-text-dark.png">

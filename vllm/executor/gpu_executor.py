@@ -83,7 +83,7 @@ class GPUExecutor(ExecutorBase):
 
     def _get_create_worker_kwargs(
             self,
-            local_rank: int = int(os.environ["LOCAL_RANK"]),
+            local_rank: int = 0,
             rank: int = 0,
             distributed_init_method: Optional[str] = None) -> Dict:
         worker_kwargs = self._get_worker_kwargs(local_rank, rank,
@@ -100,7 +100,7 @@ class GPUExecutor(ExecutorBase):
         return worker_kwargs
 
     def _create_worker(self,
-                       local_rank: int = 0,
+                       local_rank: int = int(os.environ.get("LOCAL_RANK", 0)),
                        rank: int = 0,
                        distributed_init_method: Optional[str] = None):
         return create_worker(**self._get_create_worker_kwargs(
