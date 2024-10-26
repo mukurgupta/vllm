@@ -320,6 +320,9 @@ def get_moe_configs(E: int, N: int,
 
     # If no optimized configuration is available, we will use the default
     # configuration
+    logger.warning(
+        ("Using default MoE config. Performance might be sub-optimal! "
+         "Config file not found at %s"), config_file_path)
     return None
 
 
@@ -445,7 +448,7 @@ def grouped_topk(hidden_states: torch.Tensor,
     if renormalize:
         topk_weights = topk_weights / topk_weights.sum(dim=-1, keepdim=True)
 
-    return topk_weights, topk_ids.to(torch.int32)
+    return topk_weights.to(torch.float32), topk_ids.to(torch.int32)
 
 
 def get_config_dtype_str(dtype: torch.dtype,
@@ -586,9 +589,8 @@ def fused_experts(hidden_states: torch.Tensor,
                                 use_fp8_w8a8=use_fp8_w8a8,
                                 use_int8_w8a16=use_int8_w8a16)
 
-        torch.sum(intermediate_cache3.view(*intermediate_cache3.shape),
-                  dim=1,
-                  out=out_hidden_states[begin_chunk_idx:end_chunk_idx])
+        ops.moe_sum(intermediate_cache3.view(*intermediate_cache3.shape),
+                    out_hidden_states[begin_chunk_idx:end_chunk_idx])
     return out_hidden_states
 
 
