@@ -3,22 +3,25 @@ from typing import Iterable, List, Optional, Tuple
 import torch
 import torch.nn as nn
 
+from vllm.config import VllmConfig
 from vllm.model_executor.layers.logits_processor import LogitsProcessor
 from vllm.model_executor.layers.sampler import SamplerOutput
 from vllm.model_executor.layers.vocab_parallel_embedding import (
     DEFAULT_VOCAB_PADDING_SIZE, ParallelLMHead)
 from vllm.model_executor.model_loader.weight_utils import default_weight_loader
 from vllm.model_executor.sampling_metadata import SamplingMetadata
-from vllm.transformers_utils.configs.medusa import MedusaConfig
 
 
 class ResidualBlock(nn.Module):
 
-    def __init__(self, hidden_size: int, num_layers: int) -> None:
+    def __init__(self, config: VllmConfig, hidden_size: int,
+                 num_layers: int) -> None:
         super().__init__()
 
         self.layers = nn.ModuleList([
-            nn.Linear(hidden_size, hidden_size, bias=False)
+            nn.Linear(hidden_size,
+                      hidden_size,
+                      bias=getattr(config, "medusa_fc_bias", False))
             for _ in range(num_layers)
         ])
         self.act = nn.SiLU()
@@ -44,11 +47,13 @@ class Medusa(nn.Module):
        in the draft checkpoint (using key token_map). Also, the draft config
        needs to have truncated_vocab_size (=k) as an attribute."""
 
-    def __init__(self, config: MedusaConfig, **_) -> None:
+    def __init__(self, *, vllm_config: VllmConfig, prefix: str = "") -> None:
+        config = vllm_config.model_config.hf_config
         super().__init__()
         self.config = config
         self.blocks = nn.ModuleList([
-            ResidualBlock(hidden_size=self.config.hidden_size,
+            ResidualBlock(config=config,
+                          hidden_size=self.config.hidden_size,
                           num_layers=self.config.num_hidden_layers)
             for _ in range(self.config.num_heads)
         ])
